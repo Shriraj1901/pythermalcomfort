@@ -1,6 +1,19 @@
 Changelog
 =========
 
+4.7.1 (unreleased)
+------------------
+
+* ``two_nodes_gagge_sleep`` now handles air that is more humid than the skin
+  (maximum evaporative capacity ``e_max`` of zero or below) the way ``two_nodes_gagge``
+  does. Before, skin wettedness could be negative (for example -1.69 at 38 °C air and
+  mean radiant temperature, 90 % RH, 0.1 m/s, 1.4 clo and a 1.76 quilt thickness) and
+  an ``e_max`` of exactly zero divided by zero. Now no sweat evaporates and wettedness
+  is set to ``w_max``. ``disc`` is also set to 6 when the body is warm and evaporation
+  cannot cover the comfort need, instead of returning a plausible but wrong positive
+  value (1.3 in the example above) (`#501
+  <https://github.com/pythermalcomfort/pythermalcomfort/issues/501>`_).
+
 4.7.0 (2026-10-27)
 ------------------
 

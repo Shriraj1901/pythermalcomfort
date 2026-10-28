@@ -281,3 +281,36 @@ def test_two_nodes_gagge_sleep_continuous_at_critical_wettedness() -> None:
     max_step = np.max(np.abs(np.diff(result)))
     assert max_step < 0.05
     assert np.all(np.diff(result) > 0)  # monotonic
+
+
+def test_two_nodes_gagge_sleep_humid_air_skin_wettedness() -> None:
+    """Wettedness stays within [0.06, w_max] when the air is more humid than the skin."""
+    w_max = 0.59 * 0.1**-0.08
+    result = two_nodes_gagge_sleep(
+        tdb=38, tr=38, v=0.1, rh=90, clo=1.4, thickness_quilt=1.76
+    )
+    assert 0.06 <= result.wet <= w_max
+    assert result.wet == pytest.approx(w_max)
+
+    rh = np.array([85.0, 90.0, 95.0, 100.0])
+    result = two_nodes_gagge_sleep(
+        tdb=np.full(4, 38.0),
+        tr=np.full(4, 38.0),
+        v=np.full(4, 0.1),
+        rh=rh,
+        clo=np.full(4, 1.4),
+        thickness_quilt=np.full(4, 1.76),
+    )
+    assert np.all(result.wet >= 0.06)
+    assert np.all(result.wet <= w_max + 1e-9)
+    # SET keeps rising with humidity instead of collapsing at rh=100
+    assert np.all(np.diff(result.set) > 0)
+
+
+def test_two_nodes_gagge_sleep_disc_when_sweating_cannot_cope() -> None:
+    """DISC is 6 when the body is warm and evaporation cannot cover the comfort need."""
+    result = two_nodes_gagge_sleep(
+        tdb=38, tr=38, v=0.1, rh=90, clo=1.4, thickness_quilt=1.76
+    )
+    assert result.t_sens > 0
+    assert result.disc == 6.0
